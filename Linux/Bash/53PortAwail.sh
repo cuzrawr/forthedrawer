@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # 53PortAwail.sh - execute custom event when 53 port goes down.
 #
