@@ -1,0 +1,64 @@
+# Sun  4 Jul 12:41:08 EEST 2021
+# adb, samsung phones - disable usless pkgs
+# 
+# more info: https://github.com/AlexQuiniou/remove-bloatware-galaxy-s10e
+#
+
+pm disable-user --user 0 com.google.android.youtube
+pm disable-user --user 0 com.android.providers.calendar
+pm disable-user --user 0 com.samsung.android.aware.service
+pm disable-user --user 0 com.android.mms.service
+pm disable-user --user 0 com.samsung.android.rubin.app
+pm disable-user --user 0 com.sec.android.cover.ledcover
+pm disable-user --user 0 com.sec.android.widgetapp.easymodecontactswidget
+pm disable-user --user 0 com.sec.android.app.billing
+pm disable-user --user 0 com.samsung.android.game.gamehome
+pm disable-user --user 0 com.google.ar.core
+pm disable-user --user 0 com.dsi.ant.service.socket
+pm disable-user --user 0 com.microsoft.skydrive
+pm disable-user --user 0 com.samsung.android.privateshare
+pm disable-user --user 0 de.axelspringer.yana.zeropage
+pm disable-user --user 0 com.samsung.android.securitylogagent
+pm disable-user --user 0 com.samsung.SMT
+pm disable-user --user 0 com.dsi.ant.sample.acquirechannels
+pm disable-user --user 0 com.samsung.android.aircommandmanager
+pm disable-user --user 0 com.samsung.android.net.wifi.wifiguider
+pm disable-user --user 0 com.android.stk
+pm disable-user --user 0 com.samsung.android.app.tips
+pm disable-user --user 0 com.google.android.apps.tachyon
+pm disable-user --user 0 com.android.printspooler
+pm disable-user --user 0 com.android.dreams.basic
+pm disable-user --user 0 com.android.bips
+pm disable-user --user 0 com.android.stk2
+pm disable-user --user 0 com.samsung.android.game.gametools
+pm disable-user --user 0 com.samsung.android.app.simplesharing
+pm disable-user --user 0 com.samsung.android.service.peoplestripe
+pm disable-user --user 0 com.dsi.ant.plugins.antplus
+pm disable-user --user 0 com.samsung.android.mdecservice
+pm disable-user --user 0 com.google.android.syncadapters.contacts
+pm disable-user --user 0 com.samsung.android.ardrawing
+pm disable-user --user 0 com.android.chrome
+pm disable-user --user 0 com.samsung.android.server.wifi.mobilewips
+pm disable-user --user 0 com.samsung.android.app.ledbackcover
+pm disable-user --user 0 com.dsi.ant.server
+pm disable-user --user 0 com.android.proxyhandler
+pm disable-user --user 0 com.google.android.feedback
+pm disable-user --user 0 com.google.android.printservice.recommendation
+pm disable-user --user 0 com.google.android.syncadapters.calendar
+pm disable-user --user 0 com.samsung.android.arzone
+pm disable-user --user 0 com.microsoft.office.officehubrow
+pm disable-user --user 0 com.sec.android.service.health
+pm disable-user --user 0 com.samsung.android.game.gos
+pm disable-user --user 0 com.samsung.android.forest
+pm disable-user --user 0 com.android.providers.partnerbookmarks
+pm disable-user --user 0 com.samsung.android.app.camera.sticker.facearavatar.preload
+pm disable-user --user 0 com.android.apps.tag
+pm disable-user --user 0 com.samsung.android.app.sharelive
+pm disable-user --user 0 com.samsung.android.knox.analytics.uploader
+pm disable-user --user 0 com.sec.android.emergencylauncher
+pm disable-user --user 0 com.google.android.projection.gearhead
+pm disable-user --user 0 com.sec.hearingadjust
+pm disable-user --user 0 com.knox.vpn.proxyhandler
+pm disable-user --user 0 com.samsung.android.livestickers
+pm disable-user --user 0 com.sec.android.widgetapp.webmanual
+pm disable-user --user 0 com.samsung.android.bio.face.service
