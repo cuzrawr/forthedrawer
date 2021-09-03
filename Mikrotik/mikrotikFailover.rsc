@@ -44,10 +44,11 @@
 #
 
 /system scheduler
-add interval=30s name=HLTCHKSCHD on-event=\
-    "if ([/system script job find where owner~\"sys\"] = \"\") do={\r\
+add name=HLTCHKSCHD on-event=":delay 60s\r\
+    \n:log warning \"[ ! ] verifying netwatch HLTCHK script\"\r\
+    \n#if ([/system script job find where owner~\"sys\"] = \"\") do={\r\
     \n\t/tool netwatch enable [ find comment=\"HLTCHK\" and status!=up ];\r\
-    \n};" policy=reboot,read,write,test start-time=startup
+    \n#};" policy=reboot,read,write,test start-time=startup
 
 #
 /ip route add distance=250 dst-address=8.8.4.4 type=blackhole comment="ISP1DONOTDELETE"
