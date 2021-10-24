@@ -261,7 +261,7 @@ do {
 	# if netwatch HLTCHK script up we do nothing otherwise restarting self
 	:log info message="[ ? ] 0DDNSHLPR: probably  /ip cloud  still needs to be updated and we restart ourselves if so"
 	#
-	if ([ /tool netwatch find where comment="HLTCHK" and status=down ]) do={
+	if ([ /tool netwatch find where comment="HLTCHK" and status!=up ]) do={
 		:log info message="[ ? ] 0DDNSHLPR: restarting script in 10 seconds..."
 		:delay delay-time=10s
 		/system script run "0DDNSHLPR"
