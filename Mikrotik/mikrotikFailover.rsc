@@ -55,15 +55,26 @@
 #
 
 /system scheduler
-add name=HLTCHKSCHD on-event=":delay 60s\r\
+add name=HLTCHKSCHD on-event=":log info \"[ \? ] HLTCHKSCHD: running.\"\r\
+    \n# fixthis (add checks. cloud service can be disabled)\r\
+    \n/ip cloud force-update\r\
+    \n:delay 10s\r\
+    \n/ip cloud force-update\r\
+    \n:delay 45s\r\
     \n# here we resetting failover scipts values to defaults \r\
     \n# (that if router failed due power outage or something) \r\
-    \n:log info \"[ \? ] verifying netwatch HLTCHK script\"\r\
+    \n:log info \"[ \? ] HLTCHKSCHD: verifying netwatch HLTCHK script\"\r\
     \n#if ([/system script job find where owner~\"sys\"] = \"\") do={\r\
     \n\t# \r\
     \n\t/tool netwatch enable [ find comment=\"HLTCHK\" and status!=up ];\r\
     \n\t# check ddns\r\
-    \n\t/system script run \"0DDNSHLPR\"\r\
+    \n\t/ip cloud force-update\r\
+    \n\t:delay 15s\r\
+    \n\tif ([ /tool netwatch find where comment=\"HLTCHK\" and status=up ]) do={\r\
+    \n\t\t:log info message=\"[ \? ] HLTCHKSCHD: restarting ddns script in 10 seconds...\"\r\
+    \n\t\t:delay delay-time=10s\r\
+    \n\t\t/system script run \"0DDNSHLPR\"\r\
+    \n\t}\r\
     \n#};\r\
     \n# check route priority\r\
     \nif ([ /ip dhcp-client find where comment=\"ISP1\" and default-route-distance!=1 ]) do={\r\
@@ -73,14 +84,13 @@ add name=HLTCHKSCHD on-event=":delay 60s\r\
     \n};" policy=reboot,read,write,test start-time=startup
 
 
+################################################################################
+
+#
+# blackholing is important!
 #
 /ip route add distance=250 dst-address=8.8.4.4 type=blackhole comment="ISP1DONOTDELETE"
 /ip route add distance=250 dst-address=1.0.0.1 type=blackhole comment="ISP1DONOTDELETE"
-
-
-
-
-
 
 
 
@@ -96,8 +106,6 @@ if ($bound=1) do={
 } else={
 	/ip route remove [find comment="ISP1HEALTHDST"];
 };
-
-
 
 
 
