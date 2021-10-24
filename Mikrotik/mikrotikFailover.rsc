@@ -1,7 +1,7 @@
 
 
 ################################################################################
-# v0.8rc2 ( dhcp-client only ) on Sun, Sep 20, 2020
+# v1.0beta ( dhcp-client only, custom ddns script added ) Sun 24 Oct 2021
 #                       _____  _____  __     _____  ____
 #                      |  |  ||  _  ||  |   |   __||    \
 #                      |     ||     ||  |__ |   __||  |  |
@@ -13,7 +13,7 @@
 # Wrote this script because ALOT of pain with bare netwatch.
 # There also some weird things but we are just a script. You are warned.
 #
-# When netwatch rekt, we do some magic in down part:
+# When netwatch rekt, we do some magic in "down" part:
 #     Disable self for preventing rerun.
 #     Than checks every iterate if there were ping losses and
 #     act accordind getted result, if none we return back to netwatch.
@@ -22,12 +22,15 @@
 #
 # Need custom dhcp-client with comment "ISP1".
 # Adjust "stockDistance" and "thresholdPercent" for your needs.
-# "thresholdPercent" below 5 may cause inaccuracy.
+# "thresholdPercent" below 5 may cause inaccuracy and fail.
 # "stockDistance" need to be less than your secondary ISP distance.
-# Don't change default-route-distance directly in dhcp-client.
+# Secondary ISP distance 25 is probable safe value.
+# Don't change default-route-distance directly in dhcp-client!
+# Script kinda smart and do this for you.
 # #
 # Add blackhole routes to monitored IPs to avoid checks through secondary ISP.
 # Obviously monitored IPs nailed to ISP1.
+# Currently hardcoded IPs is 8.8.4.4 and 1.0.0.1, feel free to change.
 # Set ICMP packets to HIGHEST priority.
 # For best results netwatch interval can be set to "00:00:01" or "00:00:05".
 # !!! ALL connections on failover will reset. You can improve this.
@@ -82,6 +85,10 @@ if ($bound=1) do={
 #
 # netwatch -> down ( part of failover script )
 #
+
+# should set comment="HLTCHK" otherwise script fail
+
+
 /tool netwatch disable [ find comment="HLTCHK" ];
 :log warning message=("[ ! ] netwatch host timeout");
 
@@ -120,7 +127,7 @@ do {
 	# no sense if interface fall
 	if ([/interface ethernet get [/ip dhcp-client get [find where comment="ISP1"] interface ] running ] = false) do={
 		:log error message="[ e ] interface not running. ";
-		:delay 1m;
+		:delay 42s;
 		/tool netwatch enable [ find comment="HLTCHK" ];
 		:return 0;
 	};
@@ -148,10 +155,14 @@ do {
 			if ([ /ip dhcp-client find where comment="ISP1" and default-route-distance!=25 ]) do={
 
 				/ip dhcp-client set [find where comment="ISP1"] default-route-distance=25;
-				# resseting all connections. improve this
-				/ip firewall connection remove [find];
-				#
 				:log warning message="[ ! ] fallback to secondary ISP";
+				# resseting all connections. improve this
+				:log warning message="[ ! ] resetting firewall connections.";
+				/ip firewall connection remove [find];
+				# updating ddns services
+				/ip cloud force-update
+				:log info message="[ ? ] updating ip-cloud.";
+				/system script run "0DDNSHLPR";
 			};
 
 			:log info message=("[ * ] approx pkt loss: " . $lossPercentage . "%");
@@ -166,7 +177,13 @@ do {
 				# setting distance back
 				/ip dhcp-client set [find where comment="ISP1"] default-route-distance=$stockDistance;
 				# resseting all connections. improve this
+				:log warning message="[ ! ] resetting firewall connections.";
 				/ip firewall connection remove [find];
+				# updating ddns services
+				/ip cloud force-update
+				:log warning message="[ ! ] updating ip-cloud.";
+				#
+				/system script run "0DDNSHLPR";
 			};
 
 			# and enable self
@@ -183,6 +200,11 @@ do {
 
 														#
 														/tool netwatch enable [ find comment="HLTCHK" and status!=up ]
+														# updating ddns services
+														/ip cloud force-update
+														:log warning message="[ ! ] updating ip-cloud."
+
+														/system script run "0DDNSHLPR"
 
 														:log error message="error in main loop"
 
@@ -192,6 +214,62 @@ do {
 #
 #
 # ISP failover script EOF
+
+
+
+
+
+#
+# script -> 0DDNSHLPR ( part of failover script )
+#
+
+# Name:
+# 0DDNSHLPR
+#
+# policy=reboot,read,write,test
+
+#
+# Intended to use only with HLTCHK netwatch script
+#
+
+
+/ip cloud force-update
+#  /ip cloud  cant be updated instantly, we need some delays
+:delay delay-time=5s
+
+# Set ddns here
+:local name=ourDomainName value="<<<<<<<<<<<<<<<<<<<<<<<<<DDNS_NAME_HERE>>>>>>>>>>>>>>"
+# Just for script scope, we update it in future
+:local name=resolvedIP value="127.0.0.1"
+
+# Then try resolve this ddns
+:do {
+	set name=resolvedIP value=[:resolve domain-name=$ourDomainName] ;
+	:log warning message="[ ! ] 0DDNSHLPR: resolved $ourDomainName with IP $resolvedIP"
+} on-error={ :log error message="[ e ] 0DDNSHLPR: error resolving $ourDomainName" };
+
+# Then we call your ddns provider API or do some other automated stuff
+
+:if ( $resolvedIP != [ /ip cloud get public-address ] ) do={
+	# fetch and store status in 000ddnshlpr
+	:local name=000ddnshlpr ([:tool fetch mode=https output=user url="<<<<<<<<<<<<<<<<<<<<<<<<<API_URL_HERE>>>>>>>>>>>>>>" as-value]->"status");
+	#
+	:log warning message="[ ! ] 0DDNSHLPR: ddns updated, HTTP status: $000ddnshlpr";
+} else={
+	:log warning message="[ ! ] 0DDNSHLPR: $resolvedIP same with  /ip cloud  public-address"
+	# only HLTCHK can call this script, so something goes wrong
+	# if netwatch HLTCHK script up we do nothing otherwise restarting self
+	:log info message="[ ? ] 0DDNSHLPR: probably  /ip cloud  still needs to be updated and we restart ourselves if so"
+	#
+	if ([ /tool netwatch find where comment="HLTCHK" and status=down ]) do={
+		:log info message="[ ? ] 0DDNSHLPR: restarting script in 10 seconds..."
+		:delay delay-time=10s
+		/system script run "0DDNSHLPR"
+	}
+};
+
+
+
 
 
 ################################################################################
