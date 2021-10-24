@@ -26,6 +26,7 @@
 # "stockDistance" need to be less than your secondary ISP distance.
 # Secondary ISP distance 25 is probable safe value.
 # Don't change default-route-distance directly in dhcp-client!
+#  set-up default-route-distance in netwatch and HLTCHKSCHD script (read below)
 # Script kinda smart and do this for you.
 # #
 # Add blackhole routes to monitored IPs to avoid checks through secondary ISP.
@@ -48,10 +49,22 @@
 
 /system scheduler
 add name=HLTCHKSCHD on-event=":delay 60s\r\
-    \n:log warning \"[ ! ] verifying netwatch HLTCHK script\"\r\
+    \n# here we resetting failover scipts values to defaults \r\
+    \n# (that if router failed due power outage or something) \r\
+    \n:log info \"[ \? ] verifying netwatch HLTCHK script\"\r\
     \n#if ([/system script job find where owner~\"sys\"] = \"\") do={\r\
+    \n\t# \r\
     \n\t/tool netwatch enable [ find comment=\"HLTCHK\" and status!=up ];\r\
-    \n#};" policy=reboot,read,write,test start-time=startup
+    \n\t# check ddns\r\
+    \n\t/system script run \"0DDNSHLPR\"\r\
+    \n#};\r\
+    \n# check route priority\r\
+    \nif ([ /ip dhcp-client find where comment=\"ISP1\" and default-route-distance!=1 ]) do={\r\
+    \n\t:log warning message=\"[ ! ] reverted to primary ISP\";\r\
+    \n\t# setting distance back\r\
+    \n\t/ip dhcp-client set [find where comment=\"ISP1\"] default-route-distance=1;\r\
+    \n};" policy=reboot,read,write,test start-time=startup
+
 
 #
 /ip route add distance=250 dst-address=8.8.4.4 type=blackhole comment="ISP1DONOTDELETE"
@@ -95,6 +108,7 @@ if ($bound=1) do={
 # accuracy threshold ( lower = better )
 :local thresholdPercent 5;
 # must be equal to default-route-distance ( on dhcp-client )
+# and also check scheduler script "HLTCHKSCHD" there  default-route-distance is hardcoded to 1
 :local stockDistance 1;
 
 #
