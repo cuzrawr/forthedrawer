@@ -21,17 +21,19 @@
 #                 -=[ Main requirements and recomendations ]=-
 #
 # Need custom dhcp-client with comment "ISP1".
+#
 # Adjust "stockDistance" and "thresholdPercent" for your needs.
 # "thresholdPercent" below 5 may cause inaccuracy and fail.
 # "stockDistance" need to be less than your secondary ISP distance.
-# Secondary ISP distance 25 is probable safe value.
+#
+# Secondary ISP distance 25 is probably safe value.
 # Don't change default-route-distance directly in dhcp-client!
-#  set-up default-route-distance in netwatch and HLTCHKSCHD script (read below)
-# Script kinda smart and do this for you.
+# # you can set-up default-route-distance in netwatch and HLTCHKSCHD scripts
+# # about default-route-distance read below
 # #
 # Add blackhole routes to monitored IPs to avoid checks through secondary ISP.
-# Obviously monitored IPs nailed to ISP1.
-# Currently hardcoded IPs is 8.8.4.4 and 1.0.0.1, feel free to change.
+# # Obviously monitored IPs nailed to ISP1.
+# # Currently hardcoded IPs is 8.8.4.4 and 1.0.0.1, feel free to change.
 # Set ICMP packets to HIGHEST priority.
 # For best results netwatch interval can be set to "00:00:01" or "00:00:05".
 # !!! ALL connections on failover will reset. You can improve this.
