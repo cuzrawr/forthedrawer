@@ -1,0 +1,429 @@
+--------------------------------------------------------------------------------
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-------------------------------Kern_OVERALL-------------------------------------
+
+CONFIG_SECURITY_LOCKDOWN_LSM | protect against unauthorized modification of \
+		the kernel image and to prevent access to security and cryptographic \
+		data located in kernel memory, whilst still permitting driver modules\
+		 to be loaded. | Kernel >=5.4
+
+CONFIG_IOMMU_SUPPORT | Say Y here if you want to compile device drivers  for IO Memory Management Units into the kernel. These devices usually allow to remap DMA requests and/or remap interrupts from other devices on the system. | Kernel >= 3.1 | depends - CONFIG_MMU
+
+Select this to move thread_info off the stack into task_struct. To make this work, an arch will need to remove all thread_info fields except flags and fix any runtime bugs.
+
+CONFIG_THREAD_INFO_IN_TASK | From the Linux kernel v4.9-rc1 release, thread_info structure may contains only flags and stack pointer resides in task_struct structure which represents a thread in the Linux kernel. This depends on CONFIG_THREAD_INFO_IN_TASK kernel configuration option which is enabled by default for x86_64. | Kernel >4.9
+
+CONFIG_MICROCODE | If you say Y here, you will be able to update the microcode on Intel and AMD processors. The Intel support is for the IA32 family, e.g. Pentium Pro, Pentium II, Pentium III, Pentium 4, Xeon etc. The AMD support is for families 0x10 and later. You will obviously need the actual microcode binary data itself which is not shipped with the Linux kernel.
+
+The preferred method to load microcode from a detached initrd is described in Documentation/x86/microcode.rst. For that you need to enable BLK_DEV_INITRD in order for the loader to be able to scan the initrd for microcode blobs.
+
+In addition, you can build the microcode into the kernel. For that you need to add the vendor-supplied microcode to the EXTRA_FIRMWARE config option. | kernel >=4.4
+
+CONFIG_RETPOLINE | Compile kernel with the retpoline compiler options to guard against kernel-to-user data leaks by avoiding speculative indirect branches. Requires a compiler with -mindirect-branch=thunk-extern support for full protection. The kernel may run slower. | Kernel >=4.15
+
+CONFIG_X86_SMAP | Supervisor Mode Access Prevention (SMAP) is a security feature in newer Intel processors. There is a small performance cost if this enabled and turned on; there is also a small increase in the kernel size if this is enabled. | Kernel >=3.7
+
+
+CONFIG_X86_UMIP | User Mode Instruction Prevention (UMIP) is a security feature in some x86 processors. If enabled, a general protection fault is issued if the SGDT, SLDT, SIDT, SMSW or STR instructions are executed in user mode. These instructions unnecessarily expose information about the hardware state.
+
+The vast majority of applications do not use these instructions. For the very few that do, software emulation is provided in specific cases in protected and virtual-8086 modes. Emulated results are dummy. | Kernel >=5.5
+
+
+
+EOF--------------------------Kern_OVERALL_EOF--------------------------------EOF
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-------------------------------------Kern---------------------------------------
+# Report BUG() conditions and kill the offending process.
+CONFIG_BUG=y
+
+# Make sure kernel page tables have safe permissions.
+CONFIG_DEBUG_KERNEL=y (prior to v4.11, needed to select CONFIG_DEBUG_RODATA below)
+CONFIG_DEBUG_RODATA=y (prior to v4.11)
+CONFIG_STRICT_KERNEL_RWX=y (since v4.11)
+
+# Report any dangerous memory permissions (not available on all archs).
+CONFIG_DEBUG_WX=y
+
+# Use -fstack-protector-strong (gcc 4.9+) for best stack canary coverage.
+# Prior to v4.18, these are:
+#  CONFIG_CC_STACKPROTECTOR=y
+#  CONFIG_CC_STACKPROTECTOR_STRONG=y
+CONFIG_STACKPROTECTOR=y
+CONFIG_STACKPROTECTOR_STRONG=y
+
+# Do not allow direct physical memory access (but if you must have it, at least enable STRICT mode...)
+# CONFIG_DEVMEM is not set
+CONFIG_STRICT_DEVMEM=y
+CONFIG_IO_STRICT_DEVMEM=y
+
+# Provides some protections against SYN flooding.
+CONFIG_SYN_COOKIES=y
+
+# Perform additional validation of various commonly targeted structures.
+CONFIG_DEBUG_CREDENTIALS=y
+CONFIG_DEBUG_NOTIFIERS=y
+CONFIG_DEBUG_LIST=y
+CONFIG_DEBUG_SG=y
+CONFIG_BUG_ON_DATA_CORRUPTION=y
+CONFIG_SCHED_STACK_END_CHECK=y
+
+# Provide userspace with seccomp BPF API for syscall attack surface reduction.
+CONFIG_SECCOMP=y
+CONFIG_SECCOMP_FILTER=y
+
+# Provide userspace with ptrace ancestry protections.
+CONFIG_SECURITY=y
+CONFIG_SECURITY_YAMA=y
+
+# Perform usercopy bounds checking. (And disable fallback to gain full whitelist enforcement.)
+CONFIG_HARDENED_USERCOPY=y
+# CONFIG_HARDENED_USERCOPY_FALLBACK is not set
+# CONFIG_HARDENED_USERCOPY_PAGESPAN is not set
+
+# Randomize allocator freelists, harden metadata.
+CONFIG_SLAB_FREELIST_RANDOM=y
+CONFIG_SLAB_FREELIST_HARDENED=y
+
+# Randomize high-order page allocation freelist.
+CONFIG_SHUFFLE_PAGE_ALLOCATOR=y
+
+# Allow allocator validation checking to be enabled (see "slub_debug=P" below).
+CONFIG_SLUB_DEBUG=y
+
+# Wipe higher-level memory allocations when they are freed (needs "page_poison=1" command line below).
+# (If you can afford even more performance penalty, leave CONFIG_PAGE_POISONING_NO_SANITY=n)
+CONFIG_PAGE_POISONING=y
+CONFIG_PAGE_POISONING_NO_SANITY=y
+CONFIG_PAGE_POISONING_ZERO=y
+
+# Wipe slab and page allocations (since v5.3)
+# Instead of "slub_debug=P" and "page_poison=1", a single place can control memory allocation wiping now.
+# The init_on_free is only needed if there is concern about minimizing stale data lifetime.
+CONFIG_INIT_ON_ALLOC_DEFAULT_ON=y
+CONFIG_INIT_ON_FREE_DEFAULT_ON=y
+
+# Initialize all stack variables on function entry. (Clang builds only. For GCC, see CONFIG_GCC_PLUGIN_STRUCTLEAK_BYREF_ALL=y below)
+CONFIG_INIT_STACK_ALL=y
+
+# Adds guard pages to kernel stacks (not all architectures support this yet).
+#
+# Enable this if you want the use virtually-mapped kernel stacks with guard pages. This causes kernel stack overflows to be caught immediately rather than causing difficult-to-diagnose corruption.
+# To use this with software KASAN modes, the architecture must support backing virtual mappings with real shadow memory, and KASAN_VMALLOC must be enabled.
+CONFIG_VMAP_STACK=y
+
+# Perform extensive checks on reference counting.
+CONFIG_REFCOUNT_FULL=y
+
+# Check for memory copies that might overflow a structure in str*() and mem*() functions both at build-time and run-time.
+CONFIG_FORTIFY_SOURCE=y
+
+# Avoid kernel memory address exposures via dmesg (sets sysctl kernel.dmesg_restrict initial value to 1)
+CONFIG_SECURITY_DMESG_RESTRICT=y
+
+# Dangerous; enabling this allows direct physical memory writing.
+# CONFIG_ACPI_CUSTOM_METHOD is not set
+
+# Dangerous; enabling this disables brk ASLR.
+# CONFIG_COMPAT_BRK is not set
+
+# Dangerous; enabling this allows direct kernel memory writing.
+# CONFIG_DEVKMEM is not set
+
+# Dangerous; exposes kernel text image layout.
+# CONFIG_PROC_KCORE is not set
+
+# Dangerous; enabling this disables VDSO ASLR.
+# CONFIG_COMPAT_VDSO is not set
+
+# Dangerous; enabling this allows replacement of running kernel.
+# CONFIG_KEXEC is not set
+
+# Dangerous; enabling this allows replacement of running kernel.
+# CONFIG_HIBERNATION is not set
+
+# Prior to v4.1, assists heap memory attacks; best to keep interface disabled.
+# CONFIG_INET_DIAG is not set
+
+# Easily confused by misconfigured userspace, keep off.
+# CONFIG_BINFMT_MISC is not set
+
+# Use the modern PTY interface (devpts) only.
+# CONFIG_LEGACY_PTYS is not set
+
+# If SELinux can be disabled at runtime, the LSM structures cannot be read-only; keep off.
+# CONFIG_SECURITY_SELINUX_DISABLE is not set
+
+# Reboot devices immediately if kernel experiences an Oops.
+CONFIG_PANIC_ON_OOPS=y
+CONFIG_PANIC_TIMEOUT=-1
+
+# Keep root from altering kernel memory via loadable modules.
+# CONFIG_MODULES is not set
+
+# But if CONFIG_MODULE=y is needed, at least they must be signed with a per-build key.
+CONFIG_DEBUG_SET_MODULE_RONX=y (prior to v4.11)
+CONFIG_STRICT_MODULE_RWX=y (since v4.11)
+CONFIG_MODULE_SIG=y
+CONFIG_MODULE_SIG_FORCE=y
+CONFIG_MODULE_SIG_ALL=y
+CONFIG_MODULE_SIG_SHA512=y
+CONFIG_MODULE_SIG_HASH="sha512"
+CONFIG_MODULE_SIG_KEY="certs/signing_key.pem"
+
+EOF-------------------------------KernEOF------------------------------------EOF
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--------------------------Kernel_x86_64related----------------------------------
+# Full 64-bit means PAE and NX bit.
+CONFIG_X86_64=y
+
+# Disallow allocating the first 64k of memory.
+CONFIG_DEFAULT_MMAP_MIN_ADDR=65536
+
+# Disable Model-Specific Register writes.
+# CONFIG_X86_MSR is not set
+
+# Randomize position of kernel and memory.
+CONFIG_RANDOMIZE_BASE=y
+CONFIG_RANDOMIZE_MEMORY=y
+
+# Randomize kernel stack offset on syscall entry (since v5.13).
+CONFIG_RANDOMIZE_KSTACK_OFFSET_DEFAULT=y
+
+# Modern libc no longer needs a fixed-position mapping in userspace, remove it as a possible target.
+CONFIG_LEGACY_VSYSCALL_NONE=y
+
+# Enable Kernel Page Table Isolation to remove an entire class of cache timing side-channels.
+CONFIG_PAGE_TABLE_ISOLATION=y
+
+# Remove additional attack surface, unless you really need them.
+# CONFIG_IA32_EMULATION is not set
+# CONFIG_X86_X32 is not set
+# CONFIG_MODIFY_LDT_SYSCALL is not set
+
+
+
+# Remove vsyscall entirely to avoid it being a fixed-position ROP target of any kind.
+# (Same as CONFIG_LEGACY_VSYSCALL_NONE=y above.)
+vsyscall=none
+
+
+
+EOF------------------Kernel_x86_64_related_EOF-------------------------------EOF
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+---------------------------Kernel_ARM_related-----------------------------------
+
+# Disallow allocating the first 32k of memory (cannot be 64k due to ARM loader).
+CONFIG_DEFAULT_MMAP_MIN_ADDR=32768
+
+# Randomize position of kernel (requires UEFI RNG or bootloader support for /chosen/kaslr-seed DT property).
+CONFIG_RANDOMIZE_BASE=y
+
+# Randomize kernel stack offset on syscall entry (since v5.13).
+CONFIG_RANDOMIZE_KSTACK_OFFSET_DEFAULT=y
+
+# Make sure PAN emulation is enabled.
+CONFIG_ARM64_SW_TTBR0_PAN=y
+
+# Enable Kernel Page Table Isolation to remove an entire class of cache timing side-channels.
+CONFIG_UNMAP_KERNEL_AT_EL0=y
+
+EOF----------------------Kernel_ARM64_related_EOF----------------------------EOF
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+----------------------------Kernel_x86_32_related-------------------------------
+
+# On 32-bit kernels, require PAE for NX bit support.
+# CONFIG_M486 is not set
+# CONFIG_HIGHMEM4G is not set
+CONFIG_HIGHMEM64G=y
+CONFIG_X86_PAE=y
+
+# Disallow allocating the first 64k of memory.
+CONFIG_DEFAULT_MMAP_MIN_ADDR=65536
+
+# Disable Model-Specific Register writes.
+# CONFIG_X86_MSR is not set
+
+# Randomize position of kernel.
+CONFIG_RANDOMIZE_BASE=y
+
+# Randomize kernel stack offset on syscall entry (since v5.13).
+CONFIG_RANDOMIZE_KSTACK_OFFSET_DEFAULT=y
+
+# Enable Kernel Page Table Isolation to remove an entire class of cache timing side-channels.
+CONFIG_PAGE_TABLE_ISOLATION=y
+
+# Don't allow for 16-bit program emulation and associated LDT tricks.
+# CONFIG_MODIFY_LDT_SYSCALL is not set
+EOF----------------------Kernel_x86_32_related_EOF---------------------------EOF
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+------------------------------Kernel_ARM_related--------------------------------
+
+# Disallow allocating the first 32k of memory (cannot be 64k due to ARM loader).
+CONFIG_DEFAULT_MMAP_MIN_ADDR=32768
+
+# For maximal userspace memory area (and maximum ASLR).
+CONFIG_VMSPLIT_3G=y
+
+# If building an old out-of-tree Qualcomm kernel, this is similar to CONFIG_STRICT_KERNEL_RWX.
+CONFIG_STRICT_MEMORY_RWX=y
+
+# Make sure PXN/PAN emulation is enabled.
+CONFIG_CPU_SW_DOMAIN_PAN=y
+
+# Dangerous; old interfaces and needless additional attack surface.
+# CONFIG_OABI_COMPAT is not set
+EOF-----------------------Kernel_ARM_related_EOF-----------------------------EOF
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+----------------------------------GCC-------------------------------------------
+
+# Enable GCC Plugins
+CONFIG_GCC_PLUGINS=y
+
+# Gather additional entropy at boot time for systems that may not have appropriate entropy sources.
+CONFIG_GCC_PLUGIN_LATENT_ENTROPY=y
+
+# Force all structures to be initialized before they are passed to other functions.
+# When building with GCC:
+CONFIG_GCC_PLUGIN_STRUCTLEAK=y
+CONFIG_GCC_PLUGIN_STRUCTLEAK_BYREF_ALL=y
+
+# Wipe stack contents on syscall exit (reduces stale data lifetime in stack)
+CONFIG_GCC_PLUGIN_STACKLEAK=y
+
+# Randomize the layout of system structures. This may have dramatic performance impact, so
+# use with caution or also use CONFIG_GCC_PLUGIN_RANDSTRUCT_PERFORMANCE=y
+CONFIG_GCC_PLUGIN_RANDSTRUCT=y
+
+
+
+
+
+
+EOF---------------------------------GCC_EOF----------------------------------EOF
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-----------------------kerne_command_line_options-------------------------------
+
+# Wipe slab and page allocations (Since v5.3; supersedes "slub_debug=P" and "page_poison=1" below)
+# See CONFIG_INIT_ON_ALLOC_DEFAULT_ON=y and CONFIG_INIT_ON_FREE_DEFAULT_ON=y above.
+init_on_alloc=1
+init_on_free=1
+
+# Randomize kernel stack offset on syscall entry (since v5.13).
+# See CONFIG_RANDOMIZE_KSTACK_OFFSET_DEFAULT above.
+randomize_kstack_offset=on
+
+# Disable slab merging (makes many heap overflow attacks more difficult).
+slab_nomerge
+
+# Always enable Kernel Page Table Isolation, even if the CPU claims it is safe from Meltdown.
+pti=on
+
+# To prevent against L1TF, at the cost of losing hyper threading (slow).
+nosmt
+
+# Enable SLUB redzoning and sanity checking (slow; requires CONFIG_SLUB_DEBUG=y above).
+slub_debug=ZF
+
+# (Before v5.3 without "init_on_free=1") Enable slub/slab allocator free poisoning (requires CONFIG_SLUB_DEBUG=y above).
+slub_debug=P
+
+# (Before v5.3 without "init_on_free=1") Enable buddy allocator free poisoning (requires CONFIG_PAGE_POISONING=y above).
+page_poison=1
+
+
+
+
+
+
+
+------------
+# for tests only
+#  vt.global_cursor_default=0 - disable cursor
+# usbcore.autosuspend=-1  pci=noaer loglevel=3 acpi_enforce_resources=lax processor.nocst=1 libata.noacpi=1 nvidia-drm.modeset=1 energy_perf_bias=performance - desktop
+# psmouse.synaptics_intertouch=1 - notebook
+# acpi_osi=Linux psmouse.proto=imps intel_pstate=enable pcie_aspm=force i915.i915_enable_rc6=1 i915.lvds_downclock=1 - notebook
+# acpi_osi=\"Windows 2013\"
+#
+#
+# adding ipv6.disable_ipv6=1 will keep the IPv6 stack functional but will not assign IPv6 addresses to any of your network devices.
+
+GRUB_CMDLINE_LINUX_DEFAULT="mds=full drm.debug=0 intel_iommu=on,igfx_off ipv6.disable_ipv6=1 intel_pstate=enable pcie_aspm=force psmouse.synaptics_intertouch=1 module_blacklist=kvmgt,snd_hda_codec_hdmi,8250,8250_base,8250_pci,max310x,sccnxp,serial_mctrl_gpio,kgdboc  initcall_blacklist=snd_hda_codec_hdmi,8250,8250_base,8250_pci,max310x,sccnxp,serial_mctrl_gpio,kgdboc libata.force=noncqtrim lar_disable=Y cryptomgr.notests kvm-intel.nested=1 no_timer_check replace-smp page_alloc.shuffle=1 rcupdate.rcu_expedited=1 rootfs=ext4,btrfs,xfs,f2fs tsc=reliable logo.nologo scsi_mod.use_blk_mq=0 dm_mod.use_blk_mq=0 rd.udev.log-priority=0 udev.log-priority=0 enforcing=0 ftrace_enabled=0 panic=5 kmemcheck=0 memory_corruption_check=0 memory_corruption_check_period=0 nowatchdog mem_encrypt=off pnp.debug=0 mitigations=off"
+#GRUB_CMDLINE_LINUX_DEFAULT=""
+
+# for tests only
+#GRUB_CMDLINE_LINUX_DEFAULT=" audit=0 nowatchdog apparmor=0 rd.udev.log-priority=0 udev.log-priority=0 enforcing=0 ftrace_enabled=0 kmemcheck=0 memory_corruption_check=0 memory_corruption_check_period=0 mem_encrypt=off pnp.debug=0 selinux=0 vt.global_cursor_default=0 mitigations=off "
+#GRUB_CMDLINE_LINUX_DEFAULT=" libata.force=noncqtrim lar_disable=Y cryptomgr.notests kvm-intel.nested=1 no_timer_check replace-smp page_alloc.shuffle=1 rcupdate.rcu_expedited=1 rootfs=ext4,btrfs,xfs,f2fs tsc=reliable  vga=845 energy_perf_bias=performance usbcore.autosuspend=-1 pci=noaer loglevel=3 acpi_enforce_resources=lax processor.nocst=1 libata.noacpi=1 nvidia-drm.modeset=1 initcall_blacklist=snd_hda_codec_hdmi,8250,8250_base,8250_pci,max310x,sccnxp,serial_mctrl_gpio,kgdboc logo.nologo audit=0 nowatchdog apparmor=0 scsi_mod.use_blk_mq=0 dm_mod.use_blk_mq=0 vt.global_cursor_default=0 rd.udev.log-priority=0 udev.log-priority=0 enforcing=0 ftrace_enabled=0 panic=5 kmemcheck=0 memory_corruption_check=0  memory_corruption_check_period=0  mem_encrypt=off  pnp.debug=0  selinux=0 mitigations=off"
+#GRUB_CMDLINE_LINUX_DEFAULT="nowatchdog  pci=noaer loglevel=2"
+# ipv6.disable=1
+#intel_iommu=on,igfx_off
+
+------------
+EOF--------------------kerne_command_line_options_EOF------------------------EOF
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+----------------------------------sysctl----------------------------------------
+
+# Try to keep kernel address exposures out of various /proc files (kallsyms, modules, etc). (There is no CONFIG for the changing the initial value.)
+kernel.kptr_restrict = 1
+
+# Avoid kernel memory address exposures via dmesg (this value can also be set by CONFIG_SECURITY_DMESG_RESTRICT).
+kernel.dmesg_restrict = 1
+
+# Block non-uid-0 profiling (needs distro patch, otherwise this is the same as "= 2")
+kernel.perf_event_paranoid = 3
+
+# Turn off kexec, even if it's built in.
+kernel.kexec_load_disabled = 1
+
+# Avoid non-ancestor ptrace access to running processes and their credentials.
+kernel.yama.ptrace_scope = 1
+
+# Disable User Namespaces, as it opens up a large attack surface to unprivileged users.
+user.max_user_namespaces = 0
+
+# Turn off unprivileged eBPF access.
+kernel.unprivileged_bpf_disabled = 1
+
+# Turn on BPF JIT hardening, if the JIT is enabled.
+net.core.bpf_jit_harden = 2
+
+
+EOF------------------------------sysctl_EOF----------------------------------EOF
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+------------------------------------Tools---------------------------------------
+
+Check kernel hardering:
+https://github.com/a13xp0p0v/kconfig-hardened-check
+
+EOF----------------------------------ToolsEOF--------------------------------EOF
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-------------------------------------Sources------------------------------------
+
+https://forums.gentoo.org/viewtopic-p-8480530.html
+
+https://kernsec.org/wiki/index.php/Kernel_Self_Protection_Project/Recommended_Settings
+
+https://www.kernel.org/doc/html/latest/security/index.html
+
+EOF--------------------------------SourcesEOF--------------------------------EOF
