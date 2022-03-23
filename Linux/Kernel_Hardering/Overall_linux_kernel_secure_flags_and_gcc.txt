@@ -9,6 +9,8 @@ CONFIG_SECURITY_LOCKDOWN_LSM | protect against unauthorized modification of \
 		data located in kernel memory, whilst still permitting driver modules\
 		 to be loaded. | Kernel >=5.4
 
+CONFIG_LOCK_DOWN_KERNEL_FORCE_CONFIDENTIALITY | The kernel runs in confidentiality mode by default. Features that allow the kernel to be modified at runtime or that permit userland code to read confidential material held inside the kernel are disabled. | Kernel >=5.4
+
 CONFIG_IOMMU_SUPPORT | Say Y here if you want to compile device drivers  for IO Memory Management Units into the kernel. These devices usually allow to remap DMA requests and/or remap interrupts from other devices on the system. | Kernel >= 3.1 | depends - CONFIG_MMU
 
 Select this to move thread_info off the stack into task_struct. To make this work, an arch will need to remove all thread_info fields except flags and fix any runtime bugs.
@@ -49,12 +51,42 @@ CONFIG_SECURITYFS | This will build the securityfs filesystem. It is currently u
 
 CONFIG_DEBUG_VIRTUAL | Enable some costly sanity checks in virtual to page code. This can catch mistakes with virt_to_page() and friends. | Kernel >=2.6.28
 
+CONFIG_RANDOM_TRUST_BOOTLOADER | Some bootloaders can provide entropy to increase the kernel's initial device randomness. Say Y here to assume the entropy provided by the booloader is trustworthy so it will be added to the kernel's entropy pool. Otherwise, say N here so it will be regarded as device input that only mixes the entropy pool. | Kernel >=5.4
+
+CONFIG_RANDOM_TRUST_CPU | Assume that CPU manufacturer (e.g., Intel or AMD for RDSEED or RDRAND, IBM for the S390 and Power PC architectures) is trustworthy for the purposes of initializing Linuxs CRNG. Since this is not something that can be independently audited, this amounts to trusting that CPU manufacturer (perhaps with the insistence or mandate of a Nation States intelligence or law enforcement agencies) has not installed a hidden back door to compromise the CPUs random number generation facilities. This can also be configured at boot with "random.trust_cpu=on/off". |  Kernel >=4.19
+
+CONFIG_STACKLEAK_METRICS | If this is set, STACKLEAK metrics for every task are available in the /proc file system. In particular, /proc/<pid>/stack_depth shows the maximum kernel stack consumption for the current and previous syscalls. Although this information is not precise, it can be useful for estimating the STACKLEAK performance impact for your workloads. | Kernel >=5.2
+
+CONFIG_RESET_ATTACK_MITIGATION | Request that the firmware clear the contents of RAM after a reboot using the TCG Platform Reset Attack Mitigation specification. This protects against an attacker forcibly rebooting the system while it still contains secrets in RAM, booting another OS and extracting the secrets. This should only be enabled when userland is configured to clear the MemoryOverwriteRequest flag on clean shutdown after secrets have been evicted, since otherwise it will trigger even on clean reboots. | Kernel >=4.14
+
+CONFIG_SLS | Straight Line Speculation. The consequence to this compiler hardening is known to be around a 2~3% larger kernel image size due to the extra instructions.  | Kernel >=5.17
+
+CONFIG_AMD_IOMMU_V2 | This option enables support for the AMD IOMMUv2 features of the IOMMU hardware. Select this option if you want to use devices that support the PCI PRI and PASID interface. | Kernel =5.9–5.17, 5.17+HEAD
+
+CONFIG_SECURITY_WRITABLE_HOOKS - probably need to set to NO | Introduce a new kernel configuration parameter CONFIG_SECURITY_WRITABLE_HOOKS,
+and a helper macro __lsm_ro_after_init, to handle this case. | Kernel >=4.12
+
+CONFIG_SECURITY_SAFESETID | SafeSetID is an LSM module that gates the setid family of syscalls to restrict UID/GID transitions from a given UID/GID to only those approved by a system-wide whitelist. These restrictions also prohibit the given UIDs/GIDs from obtaining auxiliary privileges associated with CAP_SET{U/G}ID, such as allowing a user to set up user namespace UID mappings. If you are unsure how to answer this question, answer N. | Kernel >=5.1
+
+
+CONFIG_SECURITY_LOADPIN | Any files read through the kernel file reading interface (kernel modules, firmware, kexec images, security policy) can be pinned to the first filesystem used for loading. When enabled, any files that come from other filesystems will be rejected. This is best used on systems without an initrd that have a root filesystem backed by a read-only device such as dm-verity or a CDROM. |  Kernel >=4.7
+
+CONFIG_SECURITY_LOADPIN_ENFORCE
+
+CONFIG_BPF_UNPRIV_DEFAULT_OFF | Disables unprivileged BPF by default by setting the corresponding /proc/sys/kernel/unprivileged_bpf_disabled knob to 2. An admin can still reenable it by setting it to 0 later on, or permanently disable it by setting it to 1 (from which no other transition to 0 is possible anymore).
+Unprivileged BPF could be used to exploit certain potential speculative execution side-channel vulnerabilities on unmitigated affected hardware. If you are unsure how to answer this question, answer Y.  | Kernel >=5.13
 
 
 
 
 UBSAN | Undefined behaviour sanity checker
 https://github.com/torvalds/linux/blob/master/lib/Kconfig.ubsan | USE WITH CAUTION
+
+GRSEC patches | https://en.wikibooks.org/wiki/Grsecurity/Configuring_and_Installing_grsecurity
+https://wiki.parabola.nu/Default_grsecurity_kernel_configuration
+https://grsecurity.net/download
+https://grsecurity.net/features
+| USE WITH CAUTION
 
 
 EOF--------------------------Kern_OVERALL_EOF--------------------------------EOF
@@ -439,6 +471,8 @@ EOF------------------------------sysctl_EOF----------------------------------EOF
 Check kernel hardering:
 https://github.com/a13xp0p0v/kconfig-hardened-check
 
+https://wiki.debian.org/grsecurity
+
 EOF----------------------------------ToolsEOF--------------------------------EOF
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -450,5 +484,9 @@ https://forums.gentoo.org/viewtopic-p-8480530.html
 https://kernsec.org/wiki/index.php/Kernel_Self_Protection_Project/Recommended_Settings
 
 https://www.kernel.org/doc/html/latest/security/index.html
+
+https://www.theregister.com/2013/09/10/torvalds_on_rrrand_nsa_gchq
+
+https://wiki.parabola.nu/Default_grsecurity_kernel_configuration
 
 EOF--------------------------------SourcesEOF--------------------------------EOF
