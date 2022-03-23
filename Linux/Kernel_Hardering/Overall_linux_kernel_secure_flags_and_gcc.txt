@@ -31,6 +31,31 @@ CONFIG_X86_UMIP | User Mode Instruction Prevention (UMIP) is a security feature 
 The vast majority of applications do not use these instructions. For the very few that do, software emulation is provided in specific cases in protected and virtual-8086 modes. Emulated results are dummy. | Kernel >=5.5
 
 
+CONFIG_RANDOMIZE_MEMORY (depends on: ( CONFIG_X86_64 ) && ( CONFIG_RANDOMIZE_BASE )) | Randomizes the base virtual address of kernel memory sections (physical memory mapping, vmalloc & vmemmap). This security feature makes exploits relying on predictable memory locations less reliable.
+The order of allocations remains unchanged. Entropy is generated in the same way as RANDOMIZE_BASE. Current implementation in the optimal configuration have in average 30,000 different possible virtual addresses for each memory section.
+If unsure, say Y. | Kernel >=4.8
+
+CONFIG_SECURITY_DMESG_RESTRICT | This enforces restrictions on unprivileged users reading the kernel syslog via dmesg(8). If this option is not selected, no restrictions will be enforced unless the dmesg_restrict sysctl is explicitly set to (1). If you are unsure how to answer this question, answer N. | Kernel >=2.6.37
+
+
+CONFIG_INIT_ON_ALLOC_DEFAULT_ON | This has the effect of setting "init_on_alloc=1" on the kernel command line. This can be disabled with "init_on_alloc=0". When "init_on_alloc" is enabled, all page allocator and slab allocator memory will be zeroed when allocated, eliminating many kinds of "uninitialized heap memory" flaws, especially heap content exposures. The performance impact varies by workload, but most cases see <1% impact. Some synthetic workloads have measured as high as 7%. | Kernel >=5.3
+
+
+CONFIG_INIT_STACK_ALL_ZERO | Initializes everything on the stack (including padding) with a zero value. This is intended to eliminate all classes of uninitialized stack variable exploits and information exposures, even variables that were warned about having been left uninitialized. Zero initialization provides safe defaults for strings (immediately NUL-terminated), pointers (NULL), indices (index 0), and sizes (0 length), so it is therefore more suitable as a production security mitigation than pattern initialization. | Kernel >=5.15
+
+
+CONFIG_SECURITYFS | This will build the securityfs filesystem. It is currently used by various security modules (AppArmor, IMA, SafeSetID, TOMOYO, TPM). | Kernel >=2.6.28
+
+
+CONFIG_DEBUG_VIRTUAL | Enable some costly sanity checks in virtual to page code. This can catch mistakes with virt_to_page() and friends. | Kernel >=2.6.28
+
+
+
+
+
+UBSAN | Undefined behaviour sanity checker
+https://github.com/torvalds/linux/blob/master/lib/Kconfig.ubsan | USE WITH CAUTION
+
 
 EOF--------------------------Kern_OVERALL_EOF--------------------------------EOF
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
