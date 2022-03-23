@@ -616,4 +616,8 @@ https://www.theregister.com/2013/09/10/torvalds_on_rrrand_nsa_gchq
 
 https://wiki.parabola.nu/Default_grsecurity_kernel_configuration
 
+https://www.kernel.org/doc/html/v4.14/admin-guide/kernel-parameters.html
+
+https://wiki.debian.org/grsecurity
+
 EOF--------------------------------SourcesEOF--------------------------------EOF
