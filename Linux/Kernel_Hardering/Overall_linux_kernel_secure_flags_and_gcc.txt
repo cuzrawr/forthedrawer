@@ -410,32 +410,159 @@ page_poison=1
 
 
 ------------
-# for tests only
-#  vt.global_cursor_default=0 - disable cursor
-# usbcore.autosuspend=-1  pci=noaer loglevel=3 acpi_enforce_resources=lax processor.nocst=1 libata.noacpi=1 nvidia-drm.modeset=1 energy_perf_bias=performance - desktop
-# psmouse.synaptics_intertouch=1 - notebook
-# acpi_osi=Linux psmouse.proto=imps intel_pstate=enable pcie_aspm=force i915.i915_enable_rc6=1 i915.lvds_downclock=1 - notebook
-# acpi_osi=\"Windows 2013\"
-#
-#
-# adding ipv6.disable_ipv6=1 will keep the IPv6 stack functional but will not assign IPv6 addresses to any of your network devices.
 
-GRUB_CMDLINE_LINUX_DEFAULT="mds=full drm.debug=0 intel_iommu=on,igfx_off ipv6.disable_ipv6=1 intel_pstate=enable pcie_aspm=force psmouse.synaptics_intertouch=1 module_blacklist=kvmgt,snd_hda_codec_hdmi,8250,8250_base,8250_pci,max310x,sccnxp,serial_mctrl_gpio,kgdboc  initcall_blacklist=snd_hda_codec_hdmi,8250,8250_base,8250_pci,max310x,sccnxp,serial_mctrl_gpio,kgdboc libata.force=noncqtrim lar_disable=Y cryptomgr.notests kvm-intel.nested=1 no_timer_check replace-smp page_alloc.shuffle=1 rcupdate.rcu_expedited=1 rootfs=ext4,btrfs,xfs,f2fs tsc=reliable logo.nologo scsi_mod.use_blk_mq=0 dm_mod.use_blk_mq=0 rd.udev.log-priority=0 udev.log-priority=0 enforcing=0 ftrace_enabled=0 panic=5 kmemcheck=0 memory_corruption_check=0 memory_corruption_check_period=0 nowatchdog mem_encrypt=off pnp.debug=0 mitigations=off"
-#GRUB_CMDLINE_LINUX_DEFAULT=""
+vt.global_cursor_default=0 - disable terminal blinkin cursor
 
-# for tests only
-#GRUB_CMDLINE_LINUX_DEFAULT=" audit=0 nowatchdog apparmor=0 rd.udev.log-priority=0 udev.log-priority=0 enforcing=0 ftrace_enabled=0 kmemcheck=0 memory_corruption_check=0 memory_corruption_check_period=0 mem_encrypt=off pnp.debug=0 selinux=0 vt.global_cursor_default=0 mitigations=off "
-#GRUB_CMDLINE_LINUX_DEFAULT=" libata.force=noncqtrim lar_disable=Y cryptomgr.notests kvm-intel.nested=1 no_timer_check replace-smp page_alloc.shuffle=1 rcupdate.rcu_expedited=1 rootfs=ext4,btrfs,xfs,f2fs tsc=reliable  vga=845 energy_perf_bias=performance usbcore.autosuspend=-1 pci=noaer loglevel=3 acpi_enforce_resources=lax processor.nocst=1 libata.noacpi=1 nvidia-drm.modeset=1 initcall_blacklist=snd_hda_codec_hdmi,8250,8250_base,8250_pci,max310x,sccnxp,serial_mctrl_gpio,kgdboc logo.nologo audit=0 nowatchdog apparmor=0 scsi_mod.use_blk_mq=0 dm_mod.use_blk_mq=0 vt.global_cursor_default=0 rd.udev.log-priority=0 udev.log-priority=0 enforcing=0 ftrace_enabled=0 panic=5 kmemcheck=0 memory_corruption_check=0  memory_corruption_check_period=0  mem_encrypt=off  pnp.debug=0  selinux=0 mitigations=off"
-#GRUB_CMDLINE_LINUX_DEFAULT="nowatchdog  pci=noaer loglevel=2"
-# ipv6.disable=1
-#intel_iommu=on,igfx_off
 
 ------------
+mds =
+
+MDS mitigation is enabled by default after booting the system with updated kernel and intel-microcode packages. In this configuration, MDS attacks are fully prevented if the processor does not support Hyper-Threads.
+
+The following kernel boot option can be used to disable Hyper-Threads of affected processors. This configuration provides full mitigation on updated systems:
+
+
+  mds=full,nosmt
+IMPORTANT: Whilst the above is provided as a generic solution to disable Hyper-Threads, instead it is recommended to disable Hyper-Threads in your BIOS settings rather than disabling them with the kernel boot option. The processor will not need to dedicate certain resources to multiple threads within a single processor core when Hyper-Threads are disabled in the BIOS. This could result in a small performance improvement when compared to disabling Hyper-Threads in the kernel.
+
+MDS mitigation does incur some performance overhead. You may use the following kernel boot option to disable MDS mitigations entirely:
+
+
+  mds=off
+IMPORTANT: Vulnerability mitigations should only be disabled in carefully controlled environments where all of the code being executed is known and trusted. Disabling any of these mitigations in situations where untrusted code can be executed is not recommended.
+
+Please see the Linux kernel MDS Admin Guide for more information on configuration options.
+
+General CPU Mitigation Configuration
+A new boot option is included in the updated kernels that mitigate MDS. The new option allows the system administrator to configure all CPU vulnerability mitigations with a single option.
+
+The following kernel boot option can be used to enable all mitigations and disable Hyper-Threads for processors affected by L1TF and/or MDS:
+
+
+  mitigations=auto,nosmt
+CPU side-channel mitigations do incure some performance overhead. You may use the following kernel boot option to disable all mitigations:
+
+
+  mitigations=off
+IMPORTANT: Vulnerability mitigations should only be disabled in carefully controlled environments where all of the code being executed is known and trusted. Disabling any of these mitigations in situations where untrusted code can be executed is not recommended.
+
+------------
+
+drm.debug=0x1 will enable CORE messages
+drm.debug=0x2 will enable DRIVER messages
+drm.debug=0x3 will enable CORE and DRIVER messages
+…
+drm.debug=0x1ff will enable all messages
+------------
+ipv6.disable_ipv6=1
+------------
+intel_pstate=enable
+-----------
+ pcie_aspm=      [PCIE] Forcibly enable or disable PCIe Active State Power
+                    Management.
+            off     Disable ASPM.
+            force   Enable ASPM even on devices that claim not to support it.
+                    WARNING: Forcing ASPM on may cause system lockups.
+-------------
+ pnp.debug=1     [PNP]
+                        Enable PNP debug messages (depends on the
+                        CONFIG_PNP_DEBUG_MESSAGES option).  Change at run-time
+                        via /sys/module/pnp/parameters/debug.  We always show
+                        current resource usage; turning this on also shows
+                        possible settings and some assignment information.
+
+
+--------------
+
+        cryptomgr.notests
+                        [KNL] Disable crypto self-tests
+----------------
+      memory_corruption_check_period=seconds [X86]
+                        By default it checks for corruption every 60
+                        seconds.  Use this parameter to check at some
+                        other rate.  0 disables periodic checking.
+
+----------------
+  rootfstype=     [KNL] Set root filesystem type
+-----------------
+
+        tsc=            Disable clocksource stability checks for TSC.
+                        Format: <string>
+                        [x86] reliable: mark tsc clocksource as reliable, this
+                        disables clocksource verification at runtime, as well
+                        as the stability checks done at bootup. Used to enable
+                        high-resolution timer mode on older hardware, and in
+                        virtualized environment.
+                        [x86] noirqtime: Do not use TSC to do irq accounting.
+                        Used to run time disable IRQ_TIME_ACCOUNTING on any
+                        platforms where RDTSC is slow and this accounting
+                        can add overhead.
+ -----------------
+  ftrace=[tracer]
+                        [FTRACE] will set and start the specified tracer
+                        as early as possible in order to facilitate early
+                        boot debugging.
+----------------------
+        kmemleak=       [KNL] Boot-time kmemleak enable/disable
+                        Valid arguments: on, off
+                        Default: on
+                        Built with CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF=y,
+                        the default is off.
+-----------------------
+        kmemcheck=      [X86] Boot-time kmemcheck enable/disable/one-shot mode
+                        Valid arguments: 0, 1, 2
+                        kmemcheck=0 (disabled)
+                        kmemcheck=1 (enabled)
+                        kmemcheck=2 (one-shot mode)
+                        Default: 2 (one-shot mode)
+-----------------------
+        nowatchdog      [KNL] Disable both lockup detectors, i.e.
+                        soft-lockup and NMI watchdog (hard-lockup).
+
+-----------------
+   nmi_watchdog=   [KNL,BUGS=X86] Debugging features for SMP kernels
+                        Format: [panic,][nopanic,][num]
+                        Valid num: 0 or 1
+                        0 - turn hardlockup detector in nmi_watchdog off
+                        1 - turn hardlockup detector in nmi_watchdog on
+                        When panic is specified, panic when an NMI watchdog
+                        timeout occurs (or 'nopanic' to override the opposite
+                        default). To disable both hard and soft lockup detectors,
+                        please see 'nowatchdog'.
+                        This is useful when you use a panic=... timeout and
+                        need the box quickly up again.
+----------------------------------
+        enforcing       [SELINUX] Set initial enforcing status.
+                        Format: {"0" | "1"}
+                        See security/selinux/Kconfig help text.
+                        0 -- permissive (log only, no denials).
+                        1 -- enforcing (deny and log).
+                        Default value is 0.
+                        Value can be changed at runtime via /selinux/enforce.
+
+
 EOF--------------------kerne_command_line_options_EOF------------------------EOF
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ----------------------------------sysctl----------------------------------------
+
+
+# These settings are specific to hardening the kernel itself from attack
+# from userspace, rather than protecting userspace from other malicious
+# userspace things.
+#
+#
+# When an attacker is trying to exploit the local kernel, it is often
+# helpful to be able to examine where in memory the kernel, modules,
+# and data structures live. As such, kernel addresses should be treated
+# as sensitive information.
+#
+# Many files and interfaces contain these addresses (e.g. /proc/kallsyms,
+# /proc/modules, etc), and this setting can censor the addresses. A value
+# of "0" allows all users to see the kernel addresses. A value of "1"
+# limits visibility to the root user, and "2" blocks even the root user.
+kernel.kptr_restrict = 1
 
 # Try to keep kernel address exposures out of various /proc files (kallsyms, modules, etc). (There is no CONFIG for the changing the initial value.)
 kernel.kptr_restrict = 1
@@ -460,6 +587,9 @@ kernel.unprivileged_bpf_disabled = 1
 
 # Turn on BPF JIT hardening, if the JIT is enabled.
 net.core.bpf_jit_harden = 2
+
+
+
 
 
 EOF------------------------------sysctl_EOF----------------------------------EOF
