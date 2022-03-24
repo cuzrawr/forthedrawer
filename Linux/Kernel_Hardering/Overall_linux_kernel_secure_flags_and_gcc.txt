@@ -347,6 +347,35 @@ EOF-----------------------Kernel_ARM_related_EOF-----------------------------EOF
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ----------------------------------GCC-------------------------------------------
 
+(ref https://developers.redhat.com/blog/2018/03/21/compiler-and-linker-flags-gcc)
+----------------
+
+
+
+Flag	                Purpose	Applicable Red Hat Enterprise Linux versions	Applicable Fedora versions
+-D_FORTIFY_SOURCE=2	    Run-time buffer overflow detection	All	All
+-D_GLIBCXX_ASSERTIONS	Run-time bounds checking for C++ strings and containers	All (but ineffective without DTS 6 or later)	All
+-fasynchronous-unwind-tables	Increased reliability of backtraces	All (for aarch64, i386, s390, s390x, x86_64)	All (for aarch64, i386, s390x, x86_64)
+-fexceptions	Enable table-based thread cancellation	All	All
+-fpie -Wl,-pie	Full ASLR for executables	7 and later (for executables)	All (for executables)
+-fpic -shared	No text relocations for shared libraries	All (for shared libraries)	All (for shared libraries)
+-fplugin=annobin	Generate data for hardening quality control	Future	Fedora 28 and later
+-fstack-clash-protection	Increased reliability of stack overflow detection	Future (after 7.5)	27 and later (except armhfp)
+-fstack-protector or -fstack-protector-all	Stack smashing protector	6 only	n/a
+-fstack-protector-strong	Likewise	7 and later	All
+-g	Generate debugging information	All	All
+-grecord-gcc-switches	Store compiler flags in debugging information	All	All
+-mcet -fcf-protection	Control flow integrity protection	Future	28 and later (x86 only)
+-O2	Recommended optimizations	All	All
+-pipe	Avoid temporary files, speeding up builds	All	All
+-Wall	Recommended compiler warnings	All	All
+-Werror=format-security	Reject potentially unsafe format string arguents	All	All
+-Werror=implicit-function-declaration	Reject missing function prototypes	All (C only)	All (C only)
+-Wl,-z,defs	Detect and reject underlinking	All	All
+-Wl,-z,now	Disable lazy binding	7 and later	All
+-Wl,-z,relro	Read-only segments after relocation	6 and later	All
+
+----------------
 # Enable GCC Plugins
 CONFIG_GCC_PLUGINS=y
 
@@ -364,6 +393,7 @@ CONFIG_GCC_PLUGIN_STACKLEAK=y
 # Randomize the layout of system structures. This may have dramatic performance impact, so
 # use with caution or also use CONFIG_GCC_PLUGIN_RANDSTRUCT_PERFORMANCE=y
 CONFIG_GCC_PLUGIN_RANDSTRUCT=y
+
 
 
 
@@ -619,5 +649,7 @@ https://wiki.parabola.nu/Default_grsecurity_kernel_configuration
 https://www.kernel.org/doc/html/v4.14/admin-guide/kernel-parameters.html
 
 https://wiki.debian.org/grsecurity
+
+https://developers.redhat.com/blog/2018/03/21/compiler-and-linker-flags-gcc
 
 EOF--------------------------------SourcesEOF--------------------------------EOF
