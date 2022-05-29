@@ -1,0 +1,12 @@
+[Unit]
+Description=docker boot
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/PATH/TO/DIR/wgeasy-adguard-hostmode
+ExecStart=/usr/bin/docker-compose -f /PATH/TO/DIR/wgeasy-adguard-hostmode/docker-compose.yml up -d --remove-orphans
+
+[Install]
+WantedBy=multi-user.target

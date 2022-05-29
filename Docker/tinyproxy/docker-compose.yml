@@ -1,0 +1,16 @@
+version: '2'
+services:
+  tinyproxy:
+    image: docker.io/kalaksi/tinyproxy
+    # You can also use GitLab as an alternative to Docker Hub:
+    # image: registry.gitlab.com/kalaksi-containers/tinyproxy
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    ports:
+      - 8888:8888
+    environment:
+      DISABLE_VIA_HEADER: 'yes'
+      STAT_HOST: tinyproxy.stats
+      MAX_CLIENTS: 200
+      ALLOWED_NETWORKS: 172.16.0.0/12
