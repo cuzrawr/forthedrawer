@@ -1,0 +1,40 @@
+version: "3"
+#
+# Gemini Server ( shavit )
+#
+services:
+  gemini:
+    build: .
+    container_name: geminiserver
+    restart: always
+    networks:
+      - internal_network
+      - external_network
+    ports:
+    # - 'host_port:internal_port'
+      - '1965:1965'
+    volumes:
+     # - /etc/localtime:/etc/localtime:ro
+     # - /var/run/docker.sock:/var/run/docker.sock:ro
+     # - ./portainer-data:/data
+      - './var-gemini-docs:/var/gemini/docs'
+#
+# File Server ( gemini docs access )
+#
+  filebrowser:
+    container_name: geminifilebrowser
+    volumes:
+      - './var-gemini-docs:/srv'
+      - './geminifilebrowser-db-conf/geminifilebrowser.db:/database.db'
+      - './geminifilebrowser-db-conf/geminifilebrowser.json:/.filebrowser.json'
+    networks:
+      - internal_network
+      - external_network
+    ports:
+      - '8080:80'
+    image: filebrowser/filebrowser
+
+networks:
+  external_network:
+  internal_network:
+    internal: true

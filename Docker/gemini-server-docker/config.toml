@@ -1,0 +1,3 @@
+source = "/var/gemini/docs/users"
+tls_certificate = "/var/gemini/server.crt"
+tls_key = "/var/gemini/server.key"
