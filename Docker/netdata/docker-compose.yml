@@ -4,7 +4,7 @@ services:
     pull_policy: always
     image: netdata/netdata
     container_name: netdata
-    hostname: gtestconn.nsupdate.info # set to fqdn of host
+    hostname: example.com # set to fqdn of host
     ports:
       - 19999:19999
     restart: unless-stopped
