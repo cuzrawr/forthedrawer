@@ -1,0 +1,102 @@
+# VPS for VPN Setup tricks:
+
+#change ssh port
+
+/etc/ssh/sshd_config
+
+# install soft
+
+apt install docker-compose
+ apt install wireguard-tools
+
+# upgrade
+sudo apt update && sudo apt upgrade -y
+
+
+# install ddnsclient
+ apt install ddclient
+# and edit
+/etc/ddclient.conf
+
+# change for your needs
+docker_wireguard_dns.service  and  docker-compose.yml
+#
+
+# install service:
+
+ cp docker_wireguard_dns.service /etc/systemd/system/
+   systemctl daemon-reload
+   systemctl enable docker_wireguard_dns.service
+
+
+
+# change   DNSStubListener=no
+#
+# in       /etc/systemd/resolved.conf
+
+#  temporary fix ( fixme ) for wg-easy
+
+sed -i 's/ListenPort = 51820/ListenPort = ${WG_PORT}/g' /var/lib/docker/overlay2/<longDockerID>/diff/app/lib/WireGuard.js
+
+
+# make weird sysctl ( dont care about securing too much):
+# /etc/sysctl.d/98-custom.conf
+
+net.ipv4.tcp_rfc1337 = 0
+net.ipv4.tcp_fin_timeout = 10
+
+# Disable TCP slow start on idle connections
+net.ipv4.tcp_slow_start_after_idle = 0
+
+# If your servers talk UDP, also up these limits
+net.ipv4.udp_rmem_min = 16384
+net.ipv4.udp_wmem_min = 16384
+
+# Disable source routing and redirects
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.all.accept_redirects = 0
+
+net.ipv4.tcp_fastopen = 3
+
+net.ipv4.tcp_keepalive_time = 60
+net.ipv4.tcp_keepalive_intvl = 10
+net.ipv4.tcp_keepalive_probes = 6
+
+
+net.ipv4.tcp_timestamps = 0
+
+net.ipv4.tcp_syncookies = 0
+
+net.ipv4.conf.default.log_martians = 0
+net.ipv4.conf.all.log_martians = 0
+#
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.conf.all.secure_redirects = 0
+net.ipv4.conf.default.secure_redirects = 0
+net.ipv6.conf.all.accept_redirects = 0
+net.ipv6.conf.default.accept_redirects = 0
+
+######################
+# disable if 1 vcpu
+  systemctl disable irqbalance.service
+
+# make iptables rules persistent:
+
+
+
+apt install iptables-persistent
+
+
+#### edit docker.service and add --iptables=off
+
+# or
+
+#/etc/docker/daemon.json
+
+and add:
+
+{
+  "iptables" : false
+}
+
