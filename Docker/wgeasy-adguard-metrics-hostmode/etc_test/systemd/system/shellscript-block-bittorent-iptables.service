@@ -1,0 +1,13 @@
+[Unit]
+Description=My Shell Script
+After=network-online.target
+Wants=network-online.target
+Type=oneshot
+
+[Service]
+ExecStart=/usr/bin/iptables-block-bittorent.sh
+
+[Install]
+WantedBy=multi-user.target
+#After=network-online.target
+#Wants=network-online.target

@@ -1,0 +1,8 @@
+# /etc/fstab: static file system information
+UUID=0f5b2856-579b-491e-bb81-5e33ab02bfb8 / ext4 rw,discard,errors=remount-ro,barrier=0,lazytime,commit=120,x-systemd.growfs 0 1
+UUID=B6F4-EF77 /boot/efi vfat defaults 0 0
+
+# pri= higher number means more priority.
+#
+
+/swapfile none swap defaults,discard,pri=128 0 0

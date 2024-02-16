@@ -1,0 +1,95 @@
+
+#########################
+# Web access:
+#
+# http://10.20.30.1:3000  - Adguard admin panel & first setup required.
+# http://10.20.30.1:51821 - Wireguard admin panel.
+# http://10.20.30.1:8685  - traffic metrics.
+#
+# Adjust this conf !!!
+# This file writed for 512MiB system.
+#########################
+
+version: "3.8"
+services:
+#
+# Service -- wireguard
+#
+  wg-easy:
+    image: weejewel/wg-easy:nightly
+    container_name: wg-easy
+    restart: unless-stopped
+    pull_policy: always
+    # Fix autism
+    command: sh -c /shell_scripts/custom_init_for_wg-easy.sh
+    volumes:
+      - ./shell_scripts:/shell_scripts
+      - ./etc_wireguard:/etc/wireguard
+    environment:
+      # ⚠️ Required:
+      # Change this to your host's public address
+      - WG_HOST=  >>>>>>>>>>>>>>>>>>>>>>>>add_my_epic.DOMAIN_NAME HERE<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      - PASSWORD=GE4TGNDFMQYWKNDCMY__CHANGE_ME___I_AM_PASSWORD_FROM_WEB_UI_WGVSGENZXMIYTCOJYGE4D
+      # Optional:
+      - WG_PORT=33888
+      # .x - at the end required.
+#      - WG_DEVICE=ens5
+      - WG_DEFAULT_ADDRESS=10.20.30.x
+      - WG_DEFAULT_DNS=1.1.1.3,45.90.28.147,9.9.9.9,1.0.0.3
+#      - WG_POST_UP=iptables -t nat -A POSTROUTING -s 10.20.30.0/24 -o ens5 -j MASQUERADE; iptables -A INPUT -p udp -m udp --dport 33888 -j ACCEPT; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j REDIRECT;iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j REDIRECT; iptables --append FORWARD --src 10.20.30.0/24 --dst 10.20.30.0/24 --jump DROP
+#      - WG_POST_UP= iptables -I INPUT -i ens5 -p udp -m udp --dport 33888 -j ACCEPT; iptables -t nat -A POSTROUTING -s 10.20.30.0/24 ! -d 10.20.30.0/24 -o ens5 -j MASQUERADE; iptables -I FORWARD -s 10.20.30.0/24 -d 10.20.30.1 -j ACCEPT; iptables -A FORWARD -s 10.20.30.0/24 -d 10.20.30.0/24 -j DROP; iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j REDIRECT; iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j REDIRECT
+#      - WG_POST_DOWN= iptables -D INPUT -i ens5 -p udp -m udp --dport 33888 -j ACCEPT; iptables -D FORWARD -s 10.20.30.0/24 -d 10.20.30.0/24 -j DROP ; iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j REDIRECT ; iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j REDIRECT  ; iptables -t nat -D POSTROUTING -s 10.20.30.0/24 ! -d 10.20.30.0/24 -o ens5 -j MASQUERADE
+      - WG_POST_UP= iptables -t nat -A POSTROUTING -s 10.20.30.0/24 ! -d 10.20.30.0/24 -o ens5 -j MASQUERADE ; iptables -A FORWARD -s 10.20.30.0/24 -d 10.20.30.0/24 -j DROP ; iptables -t nat -A PREROUTING -i wg0 -p udp --dport 53 -j REDIRECT ; iptables -t nat -A PREROUTING -i wg0 -p tcp --dport 53 -j REDIRECT
+      - WG_POST_DOWN= iptables -t nat -D POSTROUTING -s 10.20.30.0/24 ! -d 10.20.30.0/24 -o ens5 -j MASQUERADE ; iptables -D FORWARD -s 10.20.30.0/24 -d 10.20.30.0/24 -j DROP ; iptables -t nat -D PREROUTING -i wg0 -p udp --dport 53 -j REDIRECT ; iptables -t nat -D PREROUTING -i wg0 -p tcp --dport 53 -j REDIRECT
+      # - WG_MTU=1420
+      # - WG_ALLOWED_IPS=192.168.15.0/24, 10.0.1.0/24
+#    ports:
+#      - "51820:51820/udp"
+#      - "51821:51821/tcp"
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+#    sysctls:
+#      - net.ipv4.ip_forward=1
+#      - net.ipv4.conf.all.src_valid_mark=1
+    network_mode: "host"
+
+#
+# Service -- DNS
+#
+  DNS:
+    image: adguard/adguardhome:edge
+    container_name: adguardhome
+    restart: unless-stopped
+    pull_policy: always
+    environment:
+        - GOMEMLIMIT=300MiB
+        - GOGC=40
+    volumes:
+        - './DNS_workdir:/opt/adguardhome/work'
+        - './DNS_confdir:/opt/adguardhome/conf'
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+#    sysctls:
+#      - net.ipv4.ip_forward=1
+#      - net.ipv4.conf.all.src_valid_mark=1
+    network_mode: "host"
+        # ports:
+    #     - '53:53/tcp'
+    #     - '53:53/udp'
+    #     - '67:67/udp'
+    #     - '68:68/udp'
+    #     - '80:80/tcp'
+    #     - '443:443/tcp'
+    #     - '443:443/udp'
+    #     - '3000:3000/tcp'
+    #     - '853:853/tcp'
+    #     - '784:784/udp'
+    #     - '853:853/udp'
+    #     - '8853:8853/udp'
+    #     - '5443:5443/tcp'
+    #     - '5443:5443/udp'
+    mem_limit: 310m
+    mem_reservation: 200M
+

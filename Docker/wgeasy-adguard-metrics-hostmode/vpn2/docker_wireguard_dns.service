@@ -1,0 +1,12 @@
+[Unit]
+Description=docker boot
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory= <<<<CHANGE_PATH_TO_VPN>>>>/vpn2
+ExecStart=/usr/bin/docker compose -f  <<<<CHANGE_PATH_TO_VPN>>>>/vpn2/docker-compose.yml up -d --remove-orphans
+
+[Install]
+WantedBy=multi-user.target
