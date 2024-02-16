@@ -1,44 +1,34 @@
-VPN-WG-Adguard-Metrics
+# VPN-WG-Adguard-Metrics
 
-----
+## Description
+VPN-WG-Adguard-Metrics is a Dockerized, small, and user-friendly VPN interface based on the wg-easy project. It is coupled with AdGuard DNS for ad filtering and privacy enhancement, along with VNStat for network metrics. This solution is perfect for deploying a small home-size VPN with ease.
 
-Description:
-Dockerized small && user-friendly VPN interface based on wg-easy project:
+This setup utilizes host mode networking for seamless integration.
 
-, coupled with AdGuard DNS for AD filtering + privacy
-, and little VNStat for network metrics.
+## Features
+- Dockerized VPN interface based on wg-easy.
+- Integration with AdGuard DNS for ad filtering and privacy enhancement.
+- Incorporates VNStat for network traffic metrics.
+- Designed for small-scale home VPN deployments.
+- Simplified setup and usage.
 
-Perfect for small home size VPN deploy.
+## Access Points
+- [Adguard Admin Panel & Setup](http://10.20.30.1:3000)
+- [Wireguard Admin Panel](http://10.20.30.1:51821)
+- [Traffic Metrics](http://10.20.30.1:8685)
 
-Using host mode networking.
+**Note:** Make sure to adjust and review all configurations before deployment. The entire VPN configurations are optimized for systems with 512MiB memory.
 
-#########################
-# Web access:
-#
-# http://10.20.30.1:3000  - Adguard admin panel & first setup required.
-# http://10.20.30.1:51821 - Wireguard admin panel.
-# http://10.20.30.1:8685  - traffic metrics.
-#
-# Adjust and check all confs !!!
-# This entire VPN configs writed for 512MiB system!
-#########################
+## Installation
+1. Copy the `.service` files from systemd to `/etc/systemd/system/` as follows:
+    ```
+    /etc/systemd/system/docker_wireguard_dns.service
+    ```
+2. Ensure the services are enabled and activated.
 
-----
+## Configuration Examples
+Inside the `/etc_test` directory, you'll find useful examples of configurations for deployment.
 
-
-.service files from systemd should be placed
-
-like this
-
-/etc/systemd/system/docker_wireguard_dns.service
-
-
-enabled & activated
-
-you can chose to enable or no metrics, but wg+dns harcoded.
-
-----
-
-Inside /etc_test
-some usefull examples of confs for deploying
+## Note
+You have the option to enable or disable metrics, but Wireguard and DNS configurations are hardcoded.
 
